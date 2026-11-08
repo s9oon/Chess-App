@@ -1,0 +1,9 @@
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.csproj.AssemblyReference.cache
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.GeneratedMSBuildEditorConfig.editorconfig
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.AssemblyInfoInputs.cache
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.AssemblyInfo.cs
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.csproj.CoreCompileInputs.cache
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.MvcApplicationPartsAssemblyInfo.cs
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.MvcApplicationPartsAssemblyInfo.cache
+C:\Workspace\Chess-bot\web\backend\obj\Debug\net10.0\backend.sourcelink.json
