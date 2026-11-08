@@ -1,0 +1,46 @@
+# ---------- .NET backend ----------
+bin/
+obj/
+*.user
+*.suo
+*.rsuser
+.vs/
+*.log
+TestResults/
+
+# local secrets / overrides
+appsettings.*.local.json
+secrets.json
+
+# ---------- model weights ----------
+# goataro.onnx is ~78MB; copy it in from the engine export instead of committing
+*.onnx
+*.onnx.data
+
+# ---------- frontend (Node) ----------
+node_modules/
+dist/
+build/
+.vite/
+.next/
+.svelte-kit/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------- env files ----------
+.env
+.env.*
+!.env.example
+
+# ---------- editors / OS ----------
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
