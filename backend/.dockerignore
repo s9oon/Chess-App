@@ -1,0 +1,14 @@
+# Build output from the host would clash with the build inside the container
+bin/
+obj/
+
+# Not needed in the image
+Dockerfile
+.dockerignore
+*.http
+Properties/launchSettings.json
+.vs/
+.vscode/
+*.user
+.env
+.env.*
