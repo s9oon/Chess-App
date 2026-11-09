@@ -14,7 +14,10 @@ builder.Services.AddOpenApi();
 
 // CORS: only the origins listed under "Cors:AllowedOrigins" in appsettings may call the API from a browser
 const string FrontendCors = "Frontend";
-string[] allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+// Blank entries are skipped, so an empty default (like the Dockerfile's ENV) means "no origins"
+string[] allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
+    .Where(origin => !string.IsNullOrWhiteSpace(origin))
+    .ToArray();
 
 builder.Services.AddCors(options =>
     options.AddPolicy(FrontendCors, policy => policy
