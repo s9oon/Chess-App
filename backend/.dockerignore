@@ -12,4 +12,3 @@ Properties/launchSettings.json
 *.user
 .env
 .env.*
-models/
