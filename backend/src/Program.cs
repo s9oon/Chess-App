@@ -11,11 +11,12 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 
-builder.Services.AddDbContext<ApplicationDbContext>(o =>
-    o.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+string postgres = ConnectionStrings.Postgres(builder.Configuration.GetConnectionString("Postgres"));
+ConfigurationOptions redis = ConnectionStrings.Redis(builder.Configuration.GetConnectionString("Redis"));
 
-builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
-    ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
+builder.Services.AddDbContext<ApplicationDbContext>(o => o.UseNpgsql(postgres));
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
 
 const string FrontendCors = "Frontend";
 string[] allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
