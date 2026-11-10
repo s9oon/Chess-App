@@ -128,6 +128,22 @@
           }
         }
       },
+      "Swashbuckle.AspNetCore.SwaggerUI/10.3.1": {
+        "type": "package",
+        "compile": {
+          "lib/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll": {
+            "related": ".pdb;.xml"
+          }
+        },
+        "frameworkReferences": [
+          "Microsoft.AspNetCore.App"
+        ]
+      },
       "System.Numerics.Tensors/10.0.14": {
         "type": "package",
         "compile": {
@@ -271,6 +287,27 @@
         "microsoft.openapi.nuspec"
       ]
     },
+    "Swashbuckle.AspNetCore.SwaggerUI/10.3.1": {
+      "sha512": "kXuMIVJBDD6qMwG78VUrKy4x5Ke98HU0Q023Sf2iSBO/x45c5BuByYPAExIs9UeVsjdGGgvLWU5jK8l6MO2Z0Q==",
+      "type": "package",
+      "path": "swashbuckle.aspnetcore.swaggerui/10.3.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net10.0/Swashbuckle.AspNetCore.SwaggerUI.dll",
+        "lib/net10.0/Swashbuckle.AspNetCore.SwaggerUI.pdb",
+        "lib/net10.0/Swashbuckle.AspNetCore.SwaggerUI.xml",
+        "lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.dll",
+        "lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.pdb",
+        "lib/net8.0/Swashbuckle.AspNetCore.SwaggerUI.xml",
+        "lib/net9.0/Swashbuckle.AspNetCore.SwaggerUI.dll",
+        "lib/net9.0/Swashbuckle.AspNetCore.SwaggerUI.pdb",
+        "lib/net9.0/Swashbuckle.AspNetCore.SwaggerUI.xml",
+        "package-readme.md",
+        "swashbuckle.aspnetcore.swaggerui.10.3.1.nupkg.sha512",
+        "swashbuckle.aspnetcore.swaggerui.nuspec"
+      ]
+    },
     "System.Numerics.Tensors/10.0.14": {
       "sha512": "88DUO9lZZ/PfBwO51YKTd5TdVb+Cl31kd6imLKHUZxNXjnPU2V4mHIVT4f8rVK3T+sXXfDbHInzclnOHrK4azw==",
       "type": "package",
@@ -305,6 +342,7 @@
     "net10.0": [
       "Microsoft.AspNetCore.OpenApi >= 10.0.14",
       "Microsoft.ML.OnnxRuntime >= 1.31.1",
+      "Swashbuckle.AspNetCore.SwaggerUI >= 10.3.1",
       "System.Numerics.Tensors >= 10.0.14"
     ]
   },
@@ -314,11 +352,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj",
+      "projectUniqueName": "C:\\Workspace\\Chess-App\\backend\\backend.csproj",
       "projectName": "backend",
-      "projectPath": "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj",
+      "projectPath": "C:\\Workspace\\Chess-App\\backend\\backend.csproj",
       "packagesPath": "C:\\Users\\harry\\.nuget\\packages\\",
-      "outputPath": "C:\\Workspace\\Chess-bot\\web\\backend\\obj\\",
+      "outputPath": "C:\\Workspace\\Chess-App\\backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\harry\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -360,6 +398,10 @@
           "Microsoft.ML.OnnxRuntime": {
             "target": "Package",
             "version": "[1.31.1, )"
+          },
+          "Swashbuckle.AspNetCore.SwaggerUI": {
+            "target": "Package",
+            "version": "[10.3.1, )"
           },
           "System.Numerics.Tensors": {
             "target": "Package",

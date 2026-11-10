@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj": {}
+    "C:\\Workspace\\Chess-App\\backend\\backend.csproj": {}
   },
   "projects": {
-    "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj": {
+    "C:\\Workspace\\Chess-App\\backend\\backend.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj",
+        "projectUniqueName": "C:\\Workspace\\Chess-App\\backend\\backend.csproj",
         "projectName": "backend",
-        "projectPath": "C:\\Workspace\\Chess-bot\\web\\backend\\backend.csproj",
+        "projectPath": "C:\\Workspace\\Chess-App\\backend\\backend.csproj",
         "packagesPath": "C:\\Users\\harry\\.nuget\\packages\\",
-        "outputPath": "C:\\Workspace\\Chess-bot\\web\\backend\\obj\\",
+        "outputPath": "C:\\Workspace\\Chess-App\\backend\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\harry\\AppData\\Roaming\\NuGet\\NuGet.Config"
@@ -53,6 +53,10 @@
             "Microsoft.ML.OnnxRuntime": {
               "target": "Package",
               "version": "[1.31.1, )"
+            },
+            "Swashbuckle.AspNetCore.SwaggerUI": {
+              "target": "Package",
+              "version": "[10.3.1, )"
             },
             "System.Numerics.Tensors": {
               "target": "Package",
