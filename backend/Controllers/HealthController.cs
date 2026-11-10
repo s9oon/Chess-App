@@ -8,23 +8,24 @@ namespace backend.Controllers;
 [Route("[controller]")]
 public class HealthController(ApplicationDbContext db, IConnectionMultiplexer redis) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> Get()
+    [HttpGet("postgres")]
+    public async Task<IActionResult> Postgres()
     {
-        bool postgres = await db.Database.CanConnectAsync();
+        bool ok = await db.Database.CanConnectAsync();
+        return ok ? Ok(new { postgres = true }) : StatusCode(503, new { postgres = false });
+    }
 
-        bool redisOk;
+    [HttpGet("redis")]
+    public async Task<IActionResult> Redis()
+    {
         try
         {
             await redis.GetDatabase().PingAsync();
-            redisOk = true;
+            return Ok(new { redis = true });
         }
         catch (RedisException)
         {
-            redisOk = false;
+            return StatusCode(503, new { redis = false });
         }
-
-        var result = new { postgres, redis = redisOk };
-        return postgres && redisOk ? Ok(result) : StatusCode(503, result);
     }
 }

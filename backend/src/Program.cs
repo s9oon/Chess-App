@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using backend.Data;
+using backend.Hubs;
+using backend.Services;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +19,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(o =>
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
     ConnectionMultiplexer.Connect(builder.Configuration.GetConnectionString("Redis")!));
 
+builder.Services.AddHostedService<CounterSync>();
+
 const string FrontendCors = "Frontend";
 string[] allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [])
     .Where(origin => !string.IsNullOrWhiteSpace(origin))
@@ -26,7 +30,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy(FrontendCors, policy => policy
         .WithOrigins(allowedOrigins)
         .WithMethods("GET", "POST")
-        .AllowAnyHeader()));
+        .AllowAnyHeader()
+        .AllowCredentials()));
 
 var app = builder.Build();
 
@@ -43,5 +48,6 @@ app.UseCors(FrontendCors);
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<CounterHub>("/hubs/counter");
 
 app.Run();
