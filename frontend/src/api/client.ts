@@ -4,6 +4,7 @@
  * backend | v1
  * OpenAPI spec version: 1.0.0
  */
+import { customFetch } from './fetcher';
 export type getHealthPostgresResponse200 = {
   data: void
   status: 200
@@ -24,23 +25,16 @@ export const getGetHealthPostgresUrl = () => {
   return `/Health/postgres`
 }
 
-export const getHealthPostgres = async ( options?: RequestInit): Promise<getHealthPostgresResponse> => {
+export const getHealthPostgres = async ( options?: Parameters<typeof customFetch>[1]): Promise<getHealthPostgresResponse> => {
 
-  const res = await fetch(getGetHealthPostgresUrl(),
+  return customFetch<getHealthPostgresResponse>(getGetHealthPostgresUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getHealthPostgresResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as getHealthPostgresResponse
-}
+);}
 
 
 
@@ -64,20 +58,13 @@ export const getGetHealthRedisUrl = () => {
   return `/Health/redis`
 }
 
-export const getHealthRedis = async ( options?: RequestInit): Promise<getHealthRedisResponse> => {
+export const getHealthRedis = async ( options?: Parameters<typeof customFetch>[1]): Promise<getHealthRedisResponse> => {
 
-  const res = await fetch(getGetHealthRedisUrl(),
+  return customFetch<getHealthRedisResponse>(getGetHealthRedisUrl(),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getHealthRedisResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as getHealthRedisResponse
-}
+);}
