@@ -8,4 +8,10 @@ export default defineConfig({
     react(),
     babel({ presets: [reactCompilerPreset()] })
   ],
+  server: {
+    // Local dev: forward API calls to the backend, so the browser sees one origin (no CORS)
+    proxy: {
+      '/Health': 'http://localhost:5242',
+    },
+  },
 })
