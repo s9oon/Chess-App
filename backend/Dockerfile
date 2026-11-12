@@ -22,10 +22,10 @@ ENV ASPNETCORE_HTTP_PORTS=8080
 EXPOSE 8080
 
 # ---------- runtime config: override with docker run -e / Azure app settings ----------
-# Declared here so they show up in `docker inspect`. Empty = not set.
-#   Cors__AllowedOrigins__0   frontend origin allowed to call the API (add __1, __2 ... for more)
-#   Models__Goataro           path to the model, relative to /app (default from appsettings.json)
-ENV Cors__AllowedOrigins__0=""
+# Set these at runtime (Coolify env vars, docker run -e). Not baked into the image.
+#   Cors__AllowedOrigins__0       frontend origin allowed to call the API (add __1, __2 ... for more)
+#   ConnectionStrings__Postgres   Host=...;Port=5432;Database=...;Username=...;Password=...
+#   ConnectionStrings__Redis      host:6379,password=...,abortConnect=false
 
 # Run as the image's built-in non-root user
 USER $APP_UID
