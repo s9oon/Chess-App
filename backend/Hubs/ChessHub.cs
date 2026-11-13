@@ -1,48 +1,49 @@
+using StackExchange.Redis;
 using Microsoft.AspNetCore.SignalR;
-using backend.Interfaces;
 
 namespace backend.Hubs;
 
-// Thin hub: call GameService, manage groups, notify clients.
-// No Redis and no chess rules in here.
-// Doesn't compile yet: GameService, Game and IChessClient still need to be written.
-public class ChessHub(GameService games) : Hub<IChessClient>
+// Redis layout:
+//   match:{id}  hash  host, guest   (connection ids)
+public class ChessHub(IConnectionMultiplexer redis) : Hub
 {
-    public async Task<string> CreateGame()
+    private static readonly TimeSpan MatchTtl = TimeSpan.FromHours(6);
+
+    private IDatabase Db() { return redis.GetDatabase(); }
+
+    // Makes a new match, seats the caller as host, returns the id to share.
+    public async Task<string> CreateMatch()
     {
-        Game game = await games.Create(whitePlayer: Context.ConnectionId);
-        await Groups.AddToGroupAsync(Context.ConnectionId, game.Id);
-        return game.Id;
+        string me = Context.ConnectionId;
+        string matchId = Guid.NewGuid().ToString("N")[..8];
+        string key = $"match:{matchId}";
+
+        await Db().HashSetAsync(key, "host", me);
+        await Db().KeyExpireAsync(key, MatchTtl);
+
+        await Groups.AddToGroupAsync(me, matchId);
+        return matchId;
     }
 
-    public async Task JoinGame(string gameId)
+    // Seats the caller as guest in an existing match.
+    public async Task JoinMatch(string matchId)
     {
-        Game game = await games.Join(gameId, blackPlayer: Context.ConnectionId); // throws: not found / full / own game
-        await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-        await Clients.Group(gameId).GameStarted(gameId, game.Fen);
-    }
+        string me = Context.ConnectionId;
+        string key = $"match:{matchId}";
 
-    public async Task MakeMove(string gameId, string uci, string fen)
-    {
-        await games.MakeMove(gameId, Context.ConnectionId, uci, fen); // throws: not your turn / bad move
-        await Clients.OthersInGroup(gameId).MoveMade(uci, fen);
-    }
+        // Check everything BEFORE joining the group, so nobody can sneak in.
+        RedisValue host = await Db().HashGetAsync(key, "host");
+        if (host.IsNull)
+            throw new HubException("Match not found.");
+        if (host == me)
+            throw new HubException("You can't join your own match.");
 
-    public async Task Resign(string gameId)
-    {
-        await games.End(gameId);
-        await Clients.OthersInGroup(gameId).GameOver("Opponent resigned.");
-    }
+        // When.NotExists: only writes if "guest" is empty, returns false if someone already has it.
+        bool seated = await Db().HashSetAsync(key, "guest", me, When.NotExists);
+        if (!seated)
+            throw new HubException("Match is full.");
 
-    public override async Task OnDisconnectedAsync(Exception? exception)
-    {
-        string? gameId = await games.FindGameFor(Context.ConnectionId);
-        if (gameId != null)
-        {
-            await Clients.OthersInGroup(gameId).OpponentLeft();
-            await games.End(gameId);
-        }
-
-        await base.OnDisconnectedAsync(exception);
+        await Groups.AddToGroupAsync(me, matchId);
+        await Clients.OthersInGroup(matchId).SendAsync("OpponentJoined");
     }
 }
