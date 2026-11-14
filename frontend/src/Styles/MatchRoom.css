@@ -1,0 +1,11 @@
+.counter {
+  font-size: 4rem;
+  font-weight: 600;
+  margin: 1rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions {
+  display: flex;
+  gap: 0.75rem;
+}

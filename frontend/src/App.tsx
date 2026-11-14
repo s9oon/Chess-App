@@ -1,41 +1,43 @@
 import { useEffect, useState } from 'react'
-import { getHealthPostgres, getHealthRedis } from './api/client'
+import { connect, errorMessage } from './api/hub'
+import { HomePage } from './Pages/HomePage'
+import { MatchRoom } from './Pages/MatchRoom'
 
-type Status = 'checking' | 'up' | 'down'
+type Connection = 'connecting' | 'connected' | 'failed'
+type Match = { id: string; counter: number }
 
+// Connects to the hub once, then shows the home page or the match room.
+// "Page" here is just which component is rendered: in a match -> MatchRoom, otherwise HomePage.
 function App() {
-  const [postgres, setPostgres] = useState<Status>('checking')
-  const [redis, setRedis] = useState<Status>('checking')
-
-  async function check() {
-    setPostgres('checking')
-    setRedis('checking')
-
-    // fetch only throws when the backend can't be reached at all; a 503 still resolves
-    const [pg, rd] = await Promise.all([
-      getHealthPostgres().catch(() => null),
-      getHealthRedis().catch(() => null),
-    ])
-
-    setPostgres(pg?.status === 200 ? 'up' : 'down')
-    setRedis(rd?.status === 200 ? 'up' : 'down')
-  }
+  const [connection, setConnection] = useState<Connection>('connecting')
+  const [error, setError] = useState<string | null>(null)
+  const [match, setMatch] = useState<Match | null>(null)
 
   useEffect(() => {
-    check()
+    connect()
+      .then(() => setConnection('connected'))
+      .catch((e) => {
+        setConnection('failed')
+        setError(errorMessage(e))
+      })
   }, [])
 
-  return (
-    <main>
-      <h1>Backend health</h1>
-      <p>API: {import.meta.env.VITE_API_URL ?? '(same origin)'}</p>
-      <ul>
-        <li>Postgres: <span className={postgres}>{postgres}</span></li>
-        <li>Redis: <span className={redis}>{redis}</span></li>
-      </ul>
-      <button onClick={check}>Check again</button>
-    </main>
-  )
+  if (connection === 'connecting')
+    return <main><p className="checking">Connecting…</p></main>
+
+  if (connection === 'failed')
+    return <main><p className="down">Couldn't connect to the hub: {error}</p></main>
+
+  if (match)
+    return (
+      <MatchRoom
+        matchId={match.id}
+        initialCounter={match.counter}
+        onExit={() => setMatch(null)}
+      />
+    )
+
+  return <HomePage onJoined={(id, counter) => setMatch({ id, counter })} />
 }
 
 export default App

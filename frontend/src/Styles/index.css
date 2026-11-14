@@ -1,3 +1,4 @@
+/* Global styles, shared by every page. Page-specific styles live next to this in Styles/. */
 :root {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   color-scheme: light dark;
@@ -8,6 +9,8 @@ main {
   margin: 4rem auto;
   padding: 0 1rem;
 }
+
+.notice { color: gray; }
 
 .up { color: green; }
 .down { color: crimson; }
