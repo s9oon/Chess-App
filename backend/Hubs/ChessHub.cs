@@ -11,9 +11,10 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
 
     private IDatabase Db() { return redis.GetDatabase(); }
 
-    // Redis: match:{id}  Player1, Player1State, Player2, Player2State
+    // Redis: match:{id}  Player1, Player1State, Player2, Player2State, Counter
     //   PlayerN      = user id ("" = nobody)
     //   PlayerNState = "empty" | "occupied" | "reserved"
+    //   Counter      = shared number both players change
     // Makes a new match with 2 empty seats, returns the id to share.
     public async Task<string> CreateMatch()
     {
@@ -28,6 +29,7 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
             new HashEntry("Player1State", "empty"),
             new HashEntry("Player2", ""),
             new HashEntry("Player2State", "empty"),
+            new HashEntry("Counter", 0),
         ]);
         await Db().KeyExpireAsync(key, MatchTtl);
 
@@ -36,7 +38,8 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
 
     // Puts the caller in the first empty seat. Calling it again when you already have a seat
     // (e.g. after a refresh) just marks your seat "occupied" again.
-    public async Task JoinMatch(string matchId)
+    // Returns the current counter so the joiner can show it straight away.
+    public async Task<long> JoinMatch(string matchId)
     {
         string me = Context.UserIdentifier!;
         string key = $"match:{matchId}";
@@ -48,7 +51,7 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         {
             await Db().HashSetAsync(key, $"{mySeat}State", "occupied");
             await NotifyOpponent(match, mySeat, "OpponentJoined");
-            return;
+            return (long)await Db().HashGetAsync(key, "Counter");
         }
 
         string seat;
@@ -60,6 +63,7 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
             throw new HubException("Match is full.");
 
         await NotifyOpponent(match, seat, "OpponentJoined");
+        return (long)await Db().HashGetAsync(key, "Counter");
     }
 
     // Takes the seat only if it's still "empty". The transaction makes the check + both writes
@@ -97,6 +101,27 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         await tx.ExecuteAsync();
 
         await NotifyOpponent(match, mySeat, "OpponentLeft");
+    }
+
+    // Adds 1 to the match's counter and sends the new value to both players.
+    // Returns the new value to the caller too.
+    public async Task<long> IncrementCounter(string matchId)
+    {
+        string me = Context.UserIdentifier!;
+        string key = $"match:{matchId}";
+
+        Dictionary<string, string> match = await LoadMatch(key);
+        if (SeatOf(match, me) is null)
+            throw new HubException("You're not in this match.");
+
+        // HINCRBY: Redis does the +1 itself in one command, so two clicks at the same
+        // moment both count (read, add, write back could lose one).
+        long value = await Db().HashIncrementAsync(key, "Counter");
+
+        string[] players = Seats.Select(s => match[s]).Where(id => id != "").ToArray();
+        await Clients.Users(players).SendAsync("CounterUpdated", value);
+
+        return value;
     }
 
     // Server-only: private, so clients can't call it. The server decides when a match ends

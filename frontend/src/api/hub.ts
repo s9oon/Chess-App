@@ -16,6 +16,14 @@ export const hub = new signalR.HubConnectionBuilder()
   .withAutomaticReconnect()           // new ConnectionId after a drop, same user id (cookie)
   .build()
 
+// HubException messages arrive as
+//   "An unexpected error occurred invoking 'JoinMatch' on the server. HubException: Match is full."
+// This pulls out just "Match is full.".
+export function errorMessage(e: unknown): string {
+  const text = e instanceof Error ? e.message : String(e)
+  return text.split('HubException: ')[1] ?? text
+}
+
 let starting: Promise<void> | null = null
 
 // Gets the session cookie, then opens the connection. Safe to call more than once.
