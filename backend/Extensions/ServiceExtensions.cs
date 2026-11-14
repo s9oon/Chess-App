@@ -44,7 +44,18 @@ public static class ServiceExtensions
     public static IServiceCollection AddSessionCookies(this IServiceCollection services)
     {
         services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-            .AddCookie();
+            .AddCookie(o =>
+            {
+                // Frontend (vercel.app) and backend (trycloudflare.com) are different sites.
+                // The default (Lax) means the browser keeps the cookie but won't send it on the
+                // frontend's requests to the backend, so the hub sees no cookie -> 401.
+                o.Cookie.SameSite = SameSiteMode.None;
+
+                // Browsers reject SameSite=None cookies that aren't Secure. Always, because the app
+                // only sees plain http from Traefik even though visitors use https.
+                // (Browsers still accept Secure cookies on http://localhost, so local dev is fine.)
+                o.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            });
 
         return services;
     }
