@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using backend.DTO;
 
 namespace backend.Controllers;
 
@@ -10,13 +11,13 @@ namespace backend.Controllers;
 public class SessionController : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> Create()
+    public async Task<ActionResult<SessionResponse>> Create()
     {
         // 1. already has a cookie? → return that id
         //    (User is filled in from the cookie by app.UseAuthentication() before we get here)
         string? existing = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (existing is not null)
-            return Ok(new { id = existing });
+            return Ok(new SessionResponse(existing));
 
         // 2. otherwise: new Guid → Claim → ClaimsIdentity → ClaimsPrincipal → HttpContext.SignInAsync(...)
         string id = Guid.NewGuid().ToString("N");
@@ -27,6 +28,6 @@ public class SessionController : ControllerBase
 
         await HttpContext.SignInAsync(principal);   // encrypts + signs the principal into the Set-Cookie header
 
-        return Ok(new { id });
+        return Ok(new SessionResponse(id));
     }
 }
