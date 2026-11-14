@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { hub } from '../api/hub'
+import { getReceiverRegister } from '../generated/TypedSignalR.Client'
 import { Counter } from '../Components/Counter'
 import { IncrementButton } from '../Components/IncrementButton'
 import { LeaveMatch } from '../Components/LeaveMatch'
@@ -17,24 +18,18 @@ export function MatchRoom({ matchId, initialCounter, onExit }: Props) {
   const [notice, setNotice] = useState<string | null>(null)
 
   // Listen for what the server sends while we're in this room.
+  // The object must have every method in IChessClient (generated from IChessHub.cs),
+  // so a missing or misspelled handler is a compile error.
   useEffect(() => {
-    const onCounterUpdated = (value: number) => setCounter(value)
-    const onOpponentJoined = () => setNotice('Opponent joined.')
-    const onOpponentLeft = () => setNotice('Opponent left.')
-    const onMatchEnded = () => onExit()
+    const sub = getReceiverRegister('IChessClient').register(hub, {
+      counterUpdated: async (value) => setCounter(value),
+      opponentJoined: async () => setNotice('Opponent joined.'),
+      opponentLeft: async () => setNotice('Opponent left.'),
+      matchEnded: async () => onExit(),
+    })
 
-    hub.on('CounterUpdated', onCounterUpdated)
-    hub.on('OpponentJoined', onOpponentJoined)
-    hub.on('OpponentLeft', onOpponentLeft)
-    hub.on('MatchEnded', onMatchEnded)
-
-    // Cleanup on leaving the page: remove exactly these handlers so they don't stack up.
-    return () => {
-      hub.off('CounterUpdated', onCounterUpdated)
-      hub.off('OpponentJoined', onOpponentJoined)
-      hub.off('OpponentLeft', onOpponentLeft)
-      hub.off('MatchEnded', onMatchEnded)
-    }
+    // Cleanup on leaving the page: removes exactly these handlers so they don't stack up.
+    return () => sub.dispose()
   }, [onExit])
 
   return (

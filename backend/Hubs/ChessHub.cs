@@ -1,11 +1,12 @@
 using StackExchange.Redis;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using backend.Interface;
 
 namespace backend.Hubs;
 
 [Authorize]
-public class ChessHub(IConnectionMultiplexer redis) : Hub
+public class ChessHub(IConnectionMultiplexer redis) : Hub<IChessClient>, IChessHub
 {
     private static readonly TimeSpan MatchTtl = TimeSpan.FromHours(6);
 
@@ -50,7 +51,9 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         if (mySeat is not null)
         {
             await Db().HashSetAsync(key, $"{mySeat}State", "occupied");
-            await NotifyOpponent(match, mySeat, "OpponentJoined");
+            string? opponent = OpponentOf(match, mySeat);
+            if (opponent is not null)
+                await Clients.User(opponent).OpponentJoined();
             return (long)await Db().HashGetAsync(key, "Counter");
         }
 
@@ -62,7 +65,9 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         else
             throw new HubException("Match is full.");
 
-        await NotifyOpponent(match, seat, "OpponentJoined");
+        string? other = OpponentOf(match, seat);
+        if (other is not null)
+            await Clients.User(other).OpponentJoined();
         return (long)await Db().HashGetAsync(key, "Counter");
     }
 
@@ -100,7 +105,9 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         ]);
         await tx.ExecuteAsync();
 
-        await NotifyOpponent(match, mySeat, "OpponentLeft");
+        string? opponent = OpponentOf(match, mySeat);
+        if (opponent is not null)
+            await Clients.User(opponent).OpponentLeft();
     }
 
     // Adds 1 to the match's counter and sends the new value to both players.
@@ -119,7 +126,7 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         long value = await Db().HashIncrementAsync(key, "Counter");
 
         string[] players = Seats.Select(s => match[s]).Where(id => id != "").ToArray();
-        await Clients.Users(players).SendAsync("CounterUpdated", value);
+        await Clients.Users(players).CounterUpdated(value);
 
         return value;
     }
@@ -135,7 +142,7 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         await Db().KeyDeleteAsync(key);
 
         string[] players = Seats.Select(s => match[s]).Where(id => id != "").ToArray();
-        await Clients.Users(players).SendAsync("MatchEnded");
+        await Clients.Users(players).MatchEnded();
     }
 
     // ---- helpers ----
@@ -158,13 +165,12 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
         return Seats.FirstOrDefault(seat => match[seat] == userId);
     }
 
-    // Sends a message to whoever owns the other seat (if anyone).
-    // Clients.User reaches every open connection of that user, so it keeps working after a refresh.
-    private async Task NotifyOpponent(Dictionary<string, string> match, string mySeat, string message)
+    // User id of whoever owns the other seat, or null if it's empty.
+    // Send to them with Clients.User(id) — that reaches every open tab of theirs, so it works after a refresh.
+    private static string? OpponentOf(Dictionary<string, string> match, string mySeat)
     {
         string otherSeat = mySeat == "Player1" ? "Player2" : "Player1";
         string opponent = match[otherSeat];
-        if (opponent != "")
-            await Clients.User(opponent).SendAsync(message);
+        return opponent == "" ? null : opponent;
     }
 }
