@@ -12,6 +12,8 @@ export default defineConfig({
     // Local dev: forward API calls to the backend, so the browser sees one origin (no CORS)
     proxy: {
       '/Health': 'http://localhost:5242',
+      '/Session': 'http://localhost:5242',
+      '/hubs': { target: 'http://localhost:5242', ws: true },   // ws: also forward the WebSocket
     },
   },
 })

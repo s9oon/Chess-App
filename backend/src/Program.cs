@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using backend.Extensions;
+using backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +23,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors(ServiceExtensions.FrontendCors);
-app.UseAuthorization();
+app.UseAuthentication();   // reads the session cookie into User / Context.UserIdentifier
+app.UseAuthorization();    // then [Authorize] checks it
 
 app.MapControllers();
+app.MapHub<ChessHub>("/hubs/chess");
 
 app.Run();
