@@ -5,6 +5,10 @@
  * OpenAPI spec version: 1.0.0
  */
 import { customFetch } from './fetcher';
+export interface SessionResponse {
+  id: string;
+}
+
 export type getHealthPostgresResponse200 = {
   data: void
   status: 200
@@ -64,6 +68,49 @@ export const getHealthRedis = async ( options?: Parameters<typeof customFetch>[1
   {
     ...options,
     method: 'GET'
+
+
+  }
+);}
+
+
+
+export type postSessionResponse200TextPlain = {
+  data: SessionResponse
+  status: 200
+}
+
+export type postSessionResponse200ApplicationJson = {
+  data: SessionResponse
+  status: 200
+}
+
+export type postSessionResponse200TextJson = {
+  data: SessionResponse
+  status: 200
+}
+
+export type postSessionResponseSuccess = (postSessionResponse200TextPlain | postSessionResponse200ApplicationJson | postSessionResponse200TextJson) & {
+  headers: Headers;
+};
+;
+
+export type postSessionResponse = (postSessionResponseSuccess)
+
+export const getPostSessionUrl = () => {
+
+
+
+
+  return `/Session`
+}
+
+export const postSession = async ( options?: Parameters<typeof customFetch>[1]): Promise<postSessionResponse> => {
+
+  return customFetch<postSessionResponse>(getPostSessionUrl(),
+  {
+    ...options,
+    method: 'POST'
 
 
   }
