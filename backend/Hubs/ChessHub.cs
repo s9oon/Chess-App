@@ -51,26 +51,29 @@ public class ChessHub(IConnectionMultiplexer redis) : Hub
             return;
         }
 
-        foreach (string seat in Seats)
-        {
-            // Take this seat only if it's still "empty". The transaction makes the check + both writes
-            // atomic: if two people join at once, only one ExecuteAsync returns true for this seat.
-            ITransaction tx = Db().CreateTransaction();
-            tx.AddCondition(Condition.HashEqual(key, $"{seat}State", "empty"));
-            _ = tx.HashSetAsync(key,
-            [
-                new HashEntry(seat, me),
-                new HashEntry($"{seat}State", "occupied"),
-            ]);
+        string seat;
+        if (await TryTakeSeat(key, "Player1", me))
+            seat = "Player1";
+        else if (await TryTakeSeat(key, "Player2", me))
+            seat = "Player2";
+        else
+            throw new HubException("Match is full.");
 
-            if (await tx.ExecuteAsync())
-            {
-                await NotifyOpponent(match, seat, "OpponentJoined");
-                return;
-            }
-        }
+        await NotifyOpponent(match, seat, "OpponentJoined");
+    }
 
-        throw new HubException("Match is full.");
+    // Takes the seat only if it's still "empty". The transaction makes the check + both writes
+    // atomic: if two people join at once, only one of them gets true for this seat.
+    private async Task<bool> TryTakeSeat(string key, string seat, string me)
+    {
+        ITransaction tx = Db().CreateTransaction();
+        tx.AddCondition(Condition.HashEqual(key, $"{seat}State", "empty"));
+        _ = tx.HashSetAsync(key,
+        [
+            new HashEntry(seat, me),
+            new HashEntry($"{seat}State", "occupied"),
+        ]);
+        return await tx.ExecuteAsync();
     }
 
     // Frees the caller's seat so someone else can join.
