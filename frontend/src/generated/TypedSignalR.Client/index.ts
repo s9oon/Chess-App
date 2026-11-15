@@ -4,6 +4,7 @@
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
 import type { IChessHub, ICounterHub, IChessClient, ICounterClient } from './backend.Interface';
+import type { ChessModel } from '../backend.Chess.Engine';
 import type { GameState } from '../backend.DTO';
 
 
@@ -88,8 +89,8 @@ class IChessHub_HubProxy implements IChessHub {
     public constructor(private connection: HubConnection) {
     }
 
-    public readonly createMatch = async (): Promise<string> => {
-        return await this.connection.invoke("CreateMatch");
+    public readonly createMatch = async (model: (ChessModel | undefined)): Promise<string> => {
+        return await this.connection.invoke("CreateMatch", model);
     }
 
     public readonly joinMatch = async (matchId: string): Promise<GameState> => {

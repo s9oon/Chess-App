@@ -3,13 +3,15 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
+import type { ChessModel } from '../backend.Chess.Engine';
 import type { GameState } from '../backend.DTO';
 
 export type IChessHub = {
     /**
+    * @param model Transpiled from backend.Chess.Engine.ChessModel?
     * @returns Transpiled from System.Threading.Tasks.Task<string>
     */
-    createMatch(): Promise<string>;
+    createMatch(model: (ChessModel | undefined)): Promise<string>;
     /**
     * @param matchId Transpiled from string
     * @returns Transpiled from System.Threading.Tasks.Task<backend.DTO.GameState>

@@ -12,7 +12,10 @@ export const hub = new signalR.HubConnectionBuilder()
   .withAutomaticReconnect()           // new ConnectionId after a drop, same user id (cookie)
   .build()
 
-// Typed calls to ChessHub, generated from IChessHub.cs:
+// Typed calls to ChessHub, generated from IChessHub.cs. Regenerate after changing the hub, its DTOs or enums:
+//   cd backend && dotnet tsrts --project backend.csproj --output ../frontend/src/generated --enum Union
+// (--enum Union: C# enums become "Goataro" | ... string types; Program.cs sends enums as names to match)
+//
 //   await chessHub.joinMatch(id)   -> Promise<GameState>
 // A typo or wrong argument type is a compile error, unlike hub.invoke('JoinMatch', id).
 // For what the server sends us, use getReceiverRegister('IChessClient').register(hub, {...}).
