@@ -3,11 +3,12 @@ import { useNavigate, useParams } from 'react-router'
 import { chessHub, errorMessage, hub } from '../api/hub'
 import { getReceiverRegister } from '../generated/TypedSignalR.Client'
 import type { GameState } from '../generated/backend.DTO'
-import { LeaveMatch } from '../Components/LeaveMatch'
+import { LeaveMatch } from '../Components/lobby/LeaveMatch'
+import { Board } from '../Components/chess/Board'
+import { sideToMove } from '../Components/chess/fen'
 import '../Styles/MatchRoom.css'
 
 // /match/:matchId. Joins the match from the URL (so a refresh or an invite link both work).
-// Bare on purpose: the board UI comes next.
 export function MatchRoom() {
   const { matchId } = useParams() as { matchId: string }   // the route only matches when it's there
   const navigate = useNavigate()
@@ -40,8 +41,20 @@ export function MatchRoom() {
         Match id <code>{matchId}</code>: share this page's link with your opponent
       </p>
 
-      {/* TODO: the board. For now, just the raw state. */}
-      {game && <pre>{JSON.stringify(game, null, 2)}</pre>}
+      {game && (
+        <>
+          <p>{game.status === 'ongoing' ? `${sideToMove(game.fen)} to move` : game.status}</p>
+          {/* TODO: orientation should be *your* colour once JoinMatch returns it. Until then
+              you can click either side's pieces and the server answers "Not your turn." */}
+          <Board
+            fen={game.fen}
+            legalMoves={game.legalMoves}
+            orientation="white"
+            interactive={game.status === 'ongoing'}
+            onMove={(uci) => chessHub.movePiece(matchId, uci).catch((e) => setNotice(errorMessage(e)))}
+          />
+        </>
+      )}
 
       <div className="actions">
         <LeaveMatch matchId={matchId} onLeft={() => navigate('/')} onError={setNotice} />

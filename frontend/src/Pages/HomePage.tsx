@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getHealthPostgres, getHealthRedis } from '../api/client'
-import { StartMatch } from '../Components/StartMatch'
-import { JoinMatch } from '../Components/JoinMatch'
+import { StartMatch } from '../Components/lobby/StartMatch'
+import { JoinMatch } from '../Components/lobby/JoinMatch'
 import '../Styles/HomePage.css'
 
 type Status = 'checking' | 'up' | 'down'

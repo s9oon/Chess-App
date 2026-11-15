@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { chessHub, errorMessage } from '../api/hub'
+import { chessHub, errorMessage } from '../../api/hub'
 
 type Props = {
   onError: (message: string) => void

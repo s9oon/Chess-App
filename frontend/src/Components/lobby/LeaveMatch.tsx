@@ -1,4 +1,4 @@
-import { chessHub, errorMessage } from '../api/hub'
+import { chessHub, errorMessage } from '../../api/hub'
 
 type Props = {
   matchId: string
