@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace backend.Hubs;
 
+[Authorize]
 public class ChessHub(IConnectionMultiplexer redis) : Hub<IChessClient>, IChessHub
 {
     //TODO
