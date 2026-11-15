@@ -31,5 +31,6 @@ app.UseAuthorization();    // then [Authorize] checks it
 
 app.MapControllers();
 app.MapHub<CounterHub>("/hubs/counter");
+app.MapHub<ChessHub>("/hubs/chess");
 
 app.Run();

@@ -6,12 +6,8 @@ import '../Styles/HomePage.css'
 
 type Status = 'checking' | 'up' | 'down'
 
-type Props = {
-  onJoined: (matchId: string, counter: number) => void
-}
-
 // Lobby: start a new match or join one by id. Also shows backend health.
-export function HomePage({ onJoined }: Props) {
+export function HomePage() {
   const [error, setError] = useState<string | null>(null)
   const [postgres, setPostgres] = useState<Status>('checking')
   const [redis, setRedis] = useState<Status>('checking')
@@ -36,12 +32,12 @@ export function HomePage({ onJoined }: Props) {
 
   return (
     <main>
-      <h1>Counter</h1>
+      <h1>Chess</h1>
 
       <section className="lobby">
-        <StartMatch onJoined={onJoined} onError={setError} />
+        <StartMatch onError={setError} />
         <span>or</span>
-        <JoinMatch onJoined={onJoined} onError={setError} />
+        <JoinMatch />
       </section>
 
       {error && <p className="down">{error}</p>}

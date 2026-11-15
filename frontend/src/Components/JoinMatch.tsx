@@ -1,30 +1,15 @@
 import { useState, type FormEvent } from 'react'
-import { errorMessage, hub } from '../api/hub'
+import { useNavigate } from 'react-router'
 
-type Props = {
-  onJoined: (matchId: string, counter: number) => void
-  onError: (message: string) => void
-}
-
-// Joins an existing match by its id (the one the other player shares).
-export function JoinMatch({ onJoined, onError }: Props) {
+// Goes to /match/{id} for a typed-in id. Same as opening the invite link; MatchRoom does the JoinMatch.
+export function JoinMatch() {
   const [matchId, setMatchId] = useState('')
-  const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
 
-  async function join(e: FormEvent) {
+  function join(e: FormEvent) {
     e.preventDefault()
     const id = matchId.trim()
-    if (!id) return
-
-    setBusy(true)
-    try {
-      const counter = await hub.invoke<number>('JoinMatch', id)
-      onJoined(id, counter)
-    } catch (e) {
-      onError(errorMessage(e))
-    } finally {
-      setBusy(false)
-    }
+    if (id) navigate(`/match/${id}`)
   }
 
   return (
@@ -35,9 +20,7 @@ export function JoinMatch({ onJoined, onError }: Props) {
         placeholder="Match id"
         aria-label="Match id"
       />
-      <button type="submit" disabled={busy || !matchId.trim()}>
-        {busy ? 'Joining…' : 'Join match'}
-      </button>
+      <button type="submit" disabled={!matchId.trim()}>Join match</button>
     </form>
   )
 }

@@ -1,4 +1,4 @@
-import { errorMessage, hub } from '../api/hub'
+import { chessHub, errorMessage } from '../api/hub'
 
 type Props = {
   matchId: string
@@ -10,7 +10,7 @@ type Props = {
 export function LeaveMatch({ matchId, onLeft, onError }: Props) {
   async function leave() {
     try {
-      await hub.invoke('LeaveMatch', matchId)
+      await chessHub.leaveMatch(matchId)
       onLeft()
     } catch (e) {
       onError(errorMessage(e))

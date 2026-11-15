@@ -1,24 +1,23 @@
 import { useState } from 'react'
-import { errorMessage, hub } from '../api/hub'
+import { useNavigate } from 'react-router'
+import { chessHub, errorMessage } from '../api/hub'
 
 type Props = {
-  onJoined: (matchId: string, counter: number) => void
   onError: (message: string) => void
 }
 
-// Creates a new match, then joins it (CreateMatch only makes empty seats).
-export function StartMatch({ onJoined, onError }: Props) {
+// Creates a new match and goes to its page. MatchRoom does the JoinMatch (CreateMatch only makes empty seats).
+export function StartMatch({ onError }: Props) {
   const [busy, setBusy] = useState(false)
+  const navigate = useNavigate()
 
   async function start() {
     setBusy(true)
     try {
-      const matchId = await hub.invoke<string>('CreateMatch')
-      const counter = await hub.invoke<number>('JoinMatch', matchId)
-      onJoined(matchId, counter)
+      const matchId = await chessHub.createMatch()
+      navigate(`/match/${matchId}`)
     } catch (e) {
       onError(errorMessage(e))
-    } finally {
       setBusy(false)
     }
   }
