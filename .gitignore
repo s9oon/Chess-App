@@ -16,6 +16,8 @@ secrets.json
 # goataro.onnx is ~78MB; copy it in from the engine export instead of committing
 *.onnx
 *.onnx.data
+# ...except the models the backend serves, so Coolify builds include them
+!backend/chessmodels/*.onnx
 
 # ---------- frontend (Node) ----------
 node_modules/
