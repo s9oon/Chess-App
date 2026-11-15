@@ -1,17 +1,18 @@
 import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes } from 'react-router'
 import { connect, errorMessage } from './api/hub'
 import { HomePage } from './Pages/HomePage'
 import { MatchRoom } from './Pages/MatchRoom'
 
 type Connection = 'connecting' | 'connected' | 'failed'
-type Match = { id: string; counter: number }
 
-// Connects to the hub once, then shows the home page or the match room.
-// "Page" here is just which component is rendered: in a match -> MatchRoom, otherwise HomePage.
+// Connects to the hub once, then the URL decides the page:
+//   /                 -> HomePage (start or join a match)
+//   /match/a1b2c3d4   -> MatchRoom for match a1b2c3d4 (the URL is the invite link)
+//   anything else     -> back to /
 function App() {
   const [connection, setConnection] = useState<Connection>('connecting')
   const [error, setError] = useState<string | null>(null)
-  const [match, setMatch] = useState<Match | null>(null)
 
   useEffect(() => {
     connect()
@@ -28,16 +29,13 @@ function App() {
   if (connection === 'failed')
     return <main><p className="down">Couldn't connect to the hub: {error}</p></main>
 
-  if (match)
-    return (
-      <MatchRoom
-        matchId={match.id}
-        initialCounter={match.counter}
-        onExit={() => setMatch(null)}
-      />
-    )
-
-  return <HomePage onJoined={(id, counter) => setMatch({ id, counter })} />
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/match/:matchId" element={<MatchRoom />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
 }
 
 export default App

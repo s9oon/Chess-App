@@ -3,7 +3,8 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
-import type { ICounterHub, ICounterClient } from './backend.Interface';
+import type { IChessHub, ICounterHub, IChessClient, ICounterClient } from './backend.Interface';
+import type { GameState } from '../backend.DTO';
 
 
 // components
@@ -42,26 +43,67 @@ class ReceiverMethodSubscription implements Disposable {
 // API
 
 export type HubProxyFactoryProvider = {
+    (hubType: "IChessHub"): HubProxyFactory<IChessHub>;
     (hubType: "ICounterHub"): HubProxyFactory<ICounterHub>;
 }
 
 export const getHubProxyFactory = ((hubType: string) => {
+    if(hubType === "IChessHub") {
+        return IChessHub_HubProxyFactory.Instance;
+    }
     if(hubType === "ICounterHub") {
         return ICounterHub_HubProxyFactory.Instance;
     }
 }) as HubProxyFactoryProvider;
 
 export type ReceiverRegisterProvider = {
+    (receiverType: "IChessClient"): ReceiverRegister<IChessClient>;
     (receiverType: "ICounterClient"): ReceiverRegister<ICounterClient>;
 }
 
 export const getReceiverRegister = ((receiverType: string) => {
+    if(receiverType === "IChessClient") {
+        return IChessClient_Binder.Instance;
+    }
     if(receiverType === "ICounterClient") {
         return ICounterClient_Binder.Instance;
     }
 }) as ReceiverRegisterProvider;
 
 // HubProxy
+
+class IChessHub_HubProxyFactory implements HubProxyFactory<IChessHub> {
+    public static Instance = new IChessHub_HubProxyFactory();
+
+    private constructor() {
+    }
+
+    public readonly createHubProxy = (connection: HubConnection): IChessHub => {
+        return new IChessHub_HubProxy(connection);
+    }
+}
+
+class IChessHub_HubProxy implements IChessHub {
+
+    public constructor(private connection: HubConnection) {
+    }
+
+    public readonly createMatch = async (): Promise<string> => {
+        return await this.connection.invoke("CreateMatch");
+    }
+
+    public readonly joinMatch = async (matchId: string): Promise<GameState> => {
+        return await this.connection.invoke("JoinMatch", matchId);
+    }
+
+    public readonly leaveMatch = async (matchId: string): Promise<void> => {
+        return await this.connection.invoke("LeaveMatch", matchId);
+    }
+
+    public readonly movePiece = async (matchId: string, uci: string): Promise<void> => {
+        return await this.connection.invoke("MovePiece", matchId, uci);
+    }
+}
 
 class ICounterHub_HubProxyFactory implements HubProxyFactory<ICounterHub> {
     public static Instance = new ICounterHub_HubProxyFactory();
@@ -98,6 +140,36 @@ class ICounterHub_HubProxy implements ICounterHub {
 
 
 // Receiver
+
+class IChessClient_Binder implements ReceiverRegister<IChessClient> {
+
+    public static Instance = new IChessClient_Binder();
+
+    private constructor() {
+    }
+
+    public readonly register = (connection: HubConnection, receiver: IChessClient): Disposable => {
+
+        const __opponentJoined = () => receiver.opponentJoined();
+        const __opponentLeft = () => receiver.opponentLeft();
+        const __gameUpdated = (...args: [GameState]) => receiver.gameUpdated(...args);
+        const __matchEnded = () => receiver.matchEnded();
+
+        connection.on("OpponentJoined", __opponentJoined);
+        connection.on("OpponentLeft", __opponentLeft);
+        connection.on("GameUpdated", __gameUpdated);
+        connection.on("MatchEnded", __matchEnded);
+
+        const methodList: ReceiverMethod[] = [
+            { methodName: "OpponentJoined", method: __opponentJoined },
+            { methodName: "OpponentLeft", method: __opponentLeft },
+            { methodName: "GameUpdated", method: __gameUpdated },
+            { methodName: "MatchEnded", method: __matchEnded }
+        ]
+
+        return new ReceiverMethodSubscription(connection, methodList);
+    }
+}
 
 class ICounterClient_Binder implements ReceiverRegister<ICounterClient> {
 

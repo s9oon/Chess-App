@@ -1,49 +1,63 @@
 import { useEffect, useState } from 'react'
-import { hub } from '../api/hub'
+import { useNavigate, useParams } from 'react-router'
+import { chessHub, errorMessage, hub } from '../api/hub'
 import { getReceiverRegister } from '../generated/TypedSignalR.Client'
-import { Counter } from '../Components/Counter'
-import { IncrementButton } from '../Components/IncrementButton'
-import { LeaveMatch } from '../Components/LeaveMatch'
+import type { GameState } from '../generated/backend.DTO'
+import { LeaveMatch } from '../Components/lobby/LeaveMatch'
+import { Board } from '../Components/chess/Board'
+import { sideToMove } from '../Components/chess/fen'
 import '../Styles/MatchRoom.css'
 
-type Props = {
-  matchId: string
-  initialCounter: number   // from JoinMatch, so the number is right straight away
-  onExit: () => void       // back to the home page (you left, or the server ended the match)
-}
-
-// Inside a match: shared counter, +1, leave.
-export function MatchRoom({ matchId, initialCounter, onExit }: Props) {
-  const [counter, setCounter] = useState(initialCounter)
+// /match/:matchId. Joins the match from the URL (so a refresh or an invite link both work).
+export function MatchRoom() {
+  const { matchId } = useParams() as { matchId: string }   // the route only matches when it's there
+  const navigate = useNavigate()
+  const [game, setGame] = useState<GameState | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
 
-  // Listen for what the server sends while we're in this room.
-  // The object must have every method in ICounterClient (generated from ICounterHub.cs),
-  // so a missing or misspelled handler is a compile error.
+  // Join on open. Rejoining your own seat is fine (ChessService.Join handles it),
+  // so StrictMode running this twice in dev is harmless.
   useEffect(() => {
-    const sub = getReceiverRegister('ICounterClient').register(hub, {
-      counterUpdated: async (value) => setCounter(value),
+    chessHub.joinMatch(matchId)
+      .then(setGame)
+      .catch((e) => setNotice(errorMessage(e)))
+  }, [matchId])
+
+  // What the server sends while we're in this room. Must match IChessClient exactly.
+  useEffect(() => {
+    const sub = getReceiverRegister('IChessClient').register(hub, {
+      gameUpdated: async (state) => setGame(state),
       opponentJoined: async () => setNotice('Opponent joined.'),
       opponentLeft: async () => setNotice('Opponent left.'),
-      matchEnded: async () => onExit(),
+      matchEnded: async () => navigate('/'),
     })
-
-    // Cleanup on leaving the page: removes exactly these handlers so they don't stack up.
     return () => sub.dispose()
-  }, [onExit])
+  }, [navigate])
 
   return (
     <main>
       <h1>Match</h1>
       <p>
-        Match id <code>{matchId}</code>: share this with your opponent
+        Match id <code>{matchId}</code>: share this page's link with your opponent
       </p>
 
-      <Counter value={counter} />
+      {game && (
+        <>
+          <p>{game.status === 'ongoing' ? `${sideToMove(game.fen)} to move` : game.status}</p>
+          {/* TODO: orientation should be *your* colour once JoinMatch returns it. Until then
+              you can click either side's pieces and the server answers "Not your turn." */}
+          <Board
+            fen={game.fen}
+            legalMoves={game.legalMoves}
+            orientation="white"
+            interactive={game.status === 'ongoing'}
+            onMove={(uci) => chessHub.movePiece(matchId, uci).catch((e) => setNotice(errorMessage(e)))}
+          />
+        </>
+      )}
 
       <div className="actions">
-        <IncrementButton matchId={matchId} onError={setNotice} />
-        <LeaveMatch matchId={matchId} onLeft={onExit} onError={setNotice} />
+        <LeaveMatch matchId={matchId} onLeft={() => navigate('/')} onError={setNotice} />
       </div>
 
       {notice && <p className="notice">{notice}</p>}

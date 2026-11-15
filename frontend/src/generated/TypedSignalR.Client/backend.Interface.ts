@@ -3,6 +3,30 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
+import type { GameState } from '../backend.DTO';
+
+export type IChessHub = {
+    /**
+    * @returns Transpiled from System.Threading.Tasks.Task<string>
+    */
+    createMatch(): Promise<string>;
+    /**
+    * @param matchId Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task<backend.DTO.GameState>
+    */
+    joinMatch(matchId: string): Promise<GameState>;
+    /**
+    * @param matchId Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    leaveMatch(matchId: string): Promise<void>;
+    /**
+    * @param matchId Transpiled from string
+    * @param uci Transpiled from string
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    movePiece(matchId: string, uci: string): Promise<void>;
+}
 
 export type ICounterHub = {
     /**
@@ -24,6 +48,26 @@ export type ICounterHub = {
     * @returns Transpiled from System.Threading.Tasks.Task<long>
     */
     incrementCounter(matchId: string): Promise<number>;
+}
+
+export type IChessClient = {
+    /**
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    opponentJoined(): Promise<void>;
+    /**
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    opponentLeft(): Promise<void>;
+    /**
+    * @param state Transpiled from backend.DTO.GameState
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    gameUpdated(state: GameState): Promise<void>;
+    /**
+    * @returns Transpiled from System.Threading.Tasks.Task
+    */
+    matchEnded(): Promise<void>;
 }
 
 export type ICounterClient = {

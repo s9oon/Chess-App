@@ -1,6 +1,8 @@
 using System.Text.Json.Serialization;
 using backend.Extensions;
 using backend.Hubs;
+using backend.Interface;
+using backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IChessService, ChessService>();   // asking for IChessService gives you this one ChessService
 
 builder.Services.AddDatabases(builder.Configuration);
 builder.Services.AddFrontendCors(builder.Configuration);
@@ -28,5 +31,6 @@ app.UseAuthorization();    // then [Authorize] checks it
 
 app.MapControllers();
 app.MapHub<CounterHub>("/hubs/counter");
+app.MapHub<ChessHub>("/hubs/chess");
 
 app.Run();
