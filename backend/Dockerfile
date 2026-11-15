@@ -14,7 +14,7 @@ RUN dotnet publish -c Release -o /app --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Only the published output comes across: dlls, appsettings*.json, models/*.onnx
+# Only the published output comes across: dlls, appsettings*.json, chessmodels/*.onnx
 COPY --from=build /app .
 
 # Same in every environment, so it's fine to bake in
