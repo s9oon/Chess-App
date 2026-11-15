@@ -6,7 +6,7 @@ using backend.Interface;
 namespace backend.Hubs;
 
 [Authorize]
-public class ChessHub(IConnectionMultiplexer redis) : Hub<IChessClient>, IChessHub
+public class CounterHub(IConnectionMultiplexer redis) : Hub<ICounterClient>, ICounterHub
 {
     private static readonly TimeSpan MatchTtl = TimeSpan.FromHours(6);
 

@@ -3,7 +3,7 @@
 /* tslint:disable */
 // @ts-nocheck
 import type { HubConnection, IStreamResult, Subject } from '@microsoft/signalr';
-import type { IChessHub, IChessClient } from './backend.Interface';
+import type { ICounterHub, ICounterClient } from './backend.Interface';
 
 
 // components
@@ -42,39 +42,39 @@ class ReceiverMethodSubscription implements Disposable {
 // API
 
 export type HubProxyFactoryProvider = {
-    (hubType: "IChessHub"): HubProxyFactory<IChessHub>;
+    (hubType: "ICounterHub"): HubProxyFactory<ICounterHub>;
 }
 
 export const getHubProxyFactory = ((hubType: string) => {
-    if(hubType === "IChessHub") {
-        return IChessHub_HubProxyFactory.Instance;
+    if(hubType === "ICounterHub") {
+        return ICounterHub_HubProxyFactory.Instance;
     }
 }) as HubProxyFactoryProvider;
 
 export type ReceiverRegisterProvider = {
-    (receiverType: "IChessClient"): ReceiverRegister<IChessClient>;
+    (receiverType: "ICounterClient"): ReceiverRegister<ICounterClient>;
 }
 
 export const getReceiverRegister = ((receiverType: string) => {
-    if(receiverType === "IChessClient") {
-        return IChessClient_Binder.Instance;
+    if(receiverType === "ICounterClient") {
+        return ICounterClient_Binder.Instance;
     }
 }) as ReceiverRegisterProvider;
 
 // HubProxy
 
-class IChessHub_HubProxyFactory implements HubProxyFactory<IChessHub> {
-    public static Instance = new IChessHub_HubProxyFactory();
+class ICounterHub_HubProxyFactory implements HubProxyFactory<ICounterHub> {
+    public static Instance = new ICounterHub_HubProxyFactory();
 
     private constructor() {
     }
 
-    public readonly createHubProxy = (connection: HubConnection): IChessHub => {
-        return new IChessHub_HubProxy(connection);
+    public readonly createHubProxy = (connection: HubConnection): ICounterHub => {
+        return new ICounterHub_HubProxy(connection);
     }
 }
 
-class IChessHub_HubProxy implements IChessHub {
+class ICounterHub_HubProxy implements ICounterHub {
 
     public constructor(private connection: HubConnection) {
     }
@@ -99,14 +99,14 @@ class IChessHub_HubProxy implements IChessHub {
 
 // Receiver
 
-class IChessClient_Binder implements ReceiverRegister<IChessClient> {
+class ICounterClient_Binder implements ReceiverRegister<ICounterClient> {
 
-    public static Instance = new IChessClient_Binder();
+    public static Instance = new ICounterClient_Binder();
 
     private constructor() {
     }
 
-    public readonly register = (connection: HubConnection, receiver: IChessClient): Disposable => {
+    public readonly register = (connection: HubConnection, receiver: ICounterClient): Disposable => {
 
         const __opponentJoined = () => receiver.opponentJoined();
         const __opponentLeft = () => receiver.opponentLeft();
