@@ -5,7 +5,8 @@
   gap: 0.75rem;
 }
 
-.lobby form {
+.lobby form,
+.lobby .start-match {
   display: flex;
   gap: 0.5rem;
 }
