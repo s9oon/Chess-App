@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using backend.Interface;
 using backend.DTO;
 using backend.Chess;
+using backend.Chess.Engine;
 using backend.Services;
 
 namespace backend.Hubs;
@@ -10,10 +11,11 @@ namespace backend.Hubs;
 [Authorize]
 public class ChessHub(IChessService chess) : Hub<IChessClient>, IChessHub
 {
-    // New match with 2 empty seats and the starting board. Returns the id to share.
-    public Task<string> CreateMatch()
+    // New match with the starting board. Returns the id to share.
+    // No model -> 2 empty seats. A model -> that bot already sits in Player2 (Black).
+    public Task<string> CreateMatch(ChessModel? model = null)
     {
-        return chess.Create();
+        return chess.Create(model);
     }
 
     // Takes a seat (or rejoins yours after a refresh), tells the opponent, and returns the board.

@@ -1,12 +1,13 @@
 using TypedSignalR.Client;
 using backend.DTO;
+using backend.Chess.Engine;
 
 namespace backend.Interface;
 
 [Hub]       // methods the browser calls on the server
 public interface IChessHub
 {
-    Task<string> CreateMatch();                      // returns the match id to share
+    Task<string> CreateMatch(ChessModel? model = null);                      // returns the match id to share
     Task<GameState> JoinMatch(string matchId);       // returns the board so the joiner can draw it straight away
     Task LeaveMatch(string matchId);
     Task MovePiece(string matchId, string uci);      // "e2e4"; throws HubException if it's illegal or not your turn
