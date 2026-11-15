@@ -7,12 +7,12 @@ const baseUrl = import.meta.env.VITE_API_URL ?? ''
 // One connection for the whole app. Created here (not inside a component) so React
 // re-rendering or StrictMode mounting twice can't open a second connection.
 //
-//   hub.invoke('JoinMatch', id)        → calls the public method on ChessHub
+//   hub.invoke('JoinMatch', id)        → calls the public method on CounterHub
 //   hub.on('OpponentJoined', () => {}) → runs when the server sends that message
 //
 // Hub method names are plain strings: a typo compiles fine and only fails at runtime.
 export const hub = new signalR.HubConnectionBuilder()
-  .withUrl(`${baseUrl}/hubs/chess`)   // the cookie is sent with the connection automatically
+  .withUrl(`${baseUrl}/hubs/counter`)   // the cookie is sent with the connection automatically
   .withAutomaticReconnect()           // new ConnectionId after a drop, same user id (cookie)
   .build()
 

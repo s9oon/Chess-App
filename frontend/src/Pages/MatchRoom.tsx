@@ -18,10 +18,10 @@ export function MatchRoom({ matchId, initialCounter, onExit }: Props) {
   const [notice, setNotice] = useState<string | null>(null)
 
   // Listen for what the server sends while we're in this room.
-  // The object must have every method in IChessClient (generated from IChessHub.cs),
+  // The object must have every method in ICounterClient (generated from ICounterHub.cs),
   // so a missing or misspelled handler is a compile error.
   useEffect(() => {
-    const sub = getReceiverRegister('IChessClient').register(hub, {
+    const sub = getReceiverRegister('ICounterClient').register(hub, {
       counterUpdated: async (value) => setCounter(value),
       opponentJoined: async () => setNotice('Opponent joined.'),
       opponentLeft: async () => setNotice('Opponent left.'),

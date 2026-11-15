@@ -27,6 +27,6 @@ app.UseAuthentication();   // reads the session cookie into User / Context.UserI
 app.UseAuthorization();    // then [Authorize] checks it
 
 app.MapControllers();
-app.MapHub<ChessHub>("/hubs/chess");
+app.MapHub<CounterHub>("/hubs/counter");
 
 app.Run();

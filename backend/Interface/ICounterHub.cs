@@ -3,7 +3,7 @@ using TypedSignalR.Client;
 namespace backend.Interface;
 
 [Hub]       // methods the browser calls on the server
-public interface IChessHub
+public interface ICounterHub
 {
     Task<string> CreateMatch();
     Task<long> JoinMatch(string matchId);
@@ -12,7 +12,7 @@ public interface IChessHub
 }
 
 [Receiver]  // messages the server sends to the browser
-public interface IChessClient
+public interface ICounterClient
 {
     Task OpponentJoined();
     Task OpponentLeft();

@@ -4,7 +4,7 @@
 // @ts-nocheck
 import type { IStreamResult, Subject } from '@microsoft/signalr';
 
-export type IChessHub = {
+export type ICounterHub = {
     /**
     * @returns Transpiled from System.Threading.Tasks.Task<string>
     */
@@ -26,7 +26,7 @@ export type IChessHub = {
     incrementCounter(matchId: string): Promise<number>;
 }
 
-export type IChessClient = {
+export type ICounterClient = {
     /**
     * @returns Transpiled from System.Threading.Tasks.Task
     */
