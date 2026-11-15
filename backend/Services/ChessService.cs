@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.SignalR;
 using StackExchange.Redis;
 using backend.Chess;
+using backend.Chess.Engine;
 using backend.Interface;
 
 namespace backend.Services;
@@ -9,7 +10,7 @@ namespace backend.Services;
 // The hub calls this, then decides who to notify. Registered once (singleton) in Program.cs.
 //
 // Redis hash  chess:{id}
-//   Player1, Player2           = user id ("" = nobody). Player1 plays White.
+//   Player1, Player2           = user id ("" = nobody, "bot:<model>" = engine). Player1 plays White.
 //   Player1State, Player2State = "empty" | "occupied" | "reserved"
 //   Fen                        = the board
 public class ChessService(IConnectionMultiplexer redis) : IChessService
@@ -20,18 +21,23 @@ public class ChessService(IConnectionMultiplexer redis) : IChessService
     private IDatabase Db => redis.GetDatabase();
     private static string Key(string matchId) => $"chess:{matchId}";
 
-    // New match: both seats empty, starting position. Returns the id to share.
-    public async Task<string> Create()
+    // New match, starting position. Returns the id to share.
+    // With a model, the bot sits in Player2 (Black) as "occupied", so TryTakeSeat skips it
+    // and the human who joins lands in Player1 (White).
+    public async Task<string> Create(ChessModel? model = null)
     {
         string matchId = Guid.NewGuid().ToString("N")[..8];
         string key = Key(matchId);
+
+        string player2 = model is ChessModel m ? BotId(m) : "";
+        string player2State = model is null ? "empty" : "occupied";
 
         await Db.HashSetAsync(key,
         [
             new HashEntry("Player1", ""),
             new HashEntry("Player1State", "empty"),
-            new HashEntry("Player2", ""),
-            new HashEntry("Player2State", "empty"),
+            new HashEntry("Player2", player2),
+            new HashEntry("Player2State", player2State),
             new HashEntry("Fen", Board.StartFen),
         ]);
         await Db.KeyExpireAsync(key, MatchTtl);   // Redis deletes the match 6 hours after it's created
@@ -95,7 +101,7 @@ public class ChessService(IConnectionMultiplexer redis) : IChessService
     // ---- reading a loaded match ----
     // Static, so they're not in IChessService: call them as ChessService.SeatOf(...).
     // They only look at a dictionary you already have, they never touch Redis.
-
+ 
     // Which seat this user owns, or null if none.
     public static string? SeatOf(Dictionary<string, string> match, string userId)
     {
@@ -108,6 +114,11 @@ public class ChessService(IConnectionMultiplexer redis) : IChessService
         string opponent = match[mySeat == "Player1" ? "Player2" : "Player1"];
         return opponent == "" ? null : opponent;
     }
+
+    // "bot:Goataro". The prefix means it can never match a real user id.
+    public static string BotId(ChessModel model) => $"bot:{model}";
+    public static bool IsBot(string id) => id.StartsWith("bot:");
+    public static ChessModel ModelOf(string botId) => Enum.Parse<ChessModel>(botId["bot:".Length..]);   // "bot:Goataro" -> Goataro
 
     // Player1 is White, Player2 is Black.
     public static Color ColorOf(string seat) => seat == "Player1" ? Color.White : Color.Black;

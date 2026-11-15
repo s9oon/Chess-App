@@ -3,17 +3,19 @@ using Microsoft.AspNetCore.SignalR;
 using backend.Interface;
 using backend.DTO;
 using backend.Chess;
+using backend.Chess.Engine;
 using backend.Services;
 
 namespace backend.Hubs;
 
 [Authorize]
-public class ChessHub(IChessService chess) : Hub<IChessClient>, IChessHub
+public class ChessHub(IChessService chess, IChessEngine engine) : Hub<IChessClient>, IChessHub
 {
-    // New match with 2 empty seats and the starting board. Returns the id to share.
-    public Task<string> CreateMatch()
+    // New match with the starting board. Returns the id to share.
+    // No model -> 2 empty seats. A model -> that bot already sits in Player2 (Black).
+    public Task<string> CreateMatch(ChessModel? model = null)
     {
-        return chess.Create();
+        return chess.Create(model);
     }
 
     // Takes a seat (or rejoins yours after a refresh), tells the opponent, and returns the board.
@@ -41,6 +43,7 @@ public class ChessHub(IChessService chess) : Hub<IChessClient>, IChessHub
     }
 
     // Plays a move, saves the new board, and sends it to both players.
+    // If the other seat is a bot, it replies straight away (second GameUpdated).
     public async Task MovePiece(string matchId, string uci)
     {
         string me = Context.UserIdentifier!;
@@ -70,6 +73,21 @@ public class ChessHub(IChessService chess) : Hub<IChessClient>, IChessHub
             throw new HubException("The board changed, try again.");
 
         await Clients.Users(ChessService.Players(match)).GameUpdated(ToGameState(board));
+
+        // ---- bot replies ----
+        string nextSeat = board.SideToMove == Color.White ? "Player1" : "Player2";
+
+        if (board.Status() == GameStatus.Ongoing && ChessService.IsBot(match[nextSeat]))
+        {
+            string fenBeforeBot = board.ToFen();   // board after the human's move
+
+            Move botMove = engine.ChooseMove(ChessService.ModelOf(match[nextSeat]), board);
+            board.Apply(botMove);
+
+            // Can only fail if the match expired in between; then there's nothing to send
+            if (await chess.TrySaveBoard(matchId, fenBeforeBot, board.ToFen()))
+                await Clients.Users(ChessService.Players(match)).GameUpdated(ToGameState(board));
+        }
     }
 
     // ---- helpers ----
