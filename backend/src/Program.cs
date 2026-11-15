@@ -1,4 +1,6 @@
 using System.Text.Json.Serialization;
+using backend.Chess.Engine.Inference;
+using backend.Chess.Engine.MCTS;
 using backend.Extensions;
 using backend.Hubs;
 using backend.Interface;
@@ -11,6 +13,8 @@ builder.Services.AddControllers()
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
 builder.Services.AddSingleton<IChessService, ChessService>();   // asking for IChessService gives you this one ChessService
+builder.Services.Configure<MctsSettings>(builder.Configuration.GetSection("Mcts"));
+builder.Services.AddSingleton<IChessEngine, ChessEngine>();     // loads the .onnx models once, shared by every match
 
 builder.Services.AddDatabases(builder.Configuration);
 builder.Services.AddFrontendCors(builder.Configuration);
