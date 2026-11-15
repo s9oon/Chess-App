@@ -118,6 +118,7 @@ public class ChessService(IConnectionMultiplexer redis) : IChessService
     // "bot:Goataro". The prefix means it can never match a real user id.
     public static string BotId(ChessModel model) => $"bot:{model}";
     public static bool IsBot(string id) => id.StartsWith("bot:");
+    public static ChessModel ModelOf(string botId) => Enum.Parse<ChessModel>(botId["bot:".Length..]);   // "bot:Goataro" -> Goataro
 
     // Player1 is White, Player2 is Black.
     public static Color ColorOf(string seat) => seat == "Player1" ? Color.White : Color.Black;
