@@ -1,1 +1,1 @@
-A incomplete mono repo for what is to be a chess app that is hella techy broski
+THIS IS A DEPRECATED. I am ditching this repo, as ill be doing a rewrite and other reasons. The Project itself isnt ditched!.
